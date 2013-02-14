@@ -1,0 +1,27 @@
+<html>
+<head><meta http-equiv=Content-Type content="text/html;charset=utf-8">
+</head>
+<body>
+<h1><center>小说导入<center></h1>
+<form method="POST" action="/book_to_wp">
+小说目录页&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="url" size="80"/><br />
+小说类别&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="categories" size="80"/><br />
+WordPress&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="wordpress" size="80"/><br />
+WordPress用户&nbsp;&nbsp;<input name="user" size="80"/><br />
+WordPress密码&nbsp;&nbsp;<input type="password" name="passwd" size="80"/><br />
+<input name="token" type="hidden" value=<% token %>/><br />
+<input type="submit" value="导入小说" />
+</form>
+<hr>
+<form method="POST" action="/chapter_to_wp">
+小说章节页&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="url" size="80"/><br />
+章节序号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="id" size="80"/><br />
+小说类别&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="categories" size="80"/><br />
+WordPress&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="wordpress" size="80"/><br />
+WordPress用户&nbsp;&nbsp;<input name="user" size="80"/><br />
+WordPress密码&nbsp;&nbsp;<input name="passwd" size="80"/><br />
+<input name="token" type="hidden" value=<% token %>/><br />
+<input type="submit" value="导入章节" />
+</form>
+</body>
+</html>
