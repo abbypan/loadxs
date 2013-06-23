@@ -6,3 +6,5 @@
 可将小说导入指定wordpress站点
 
 也可部署在dotcloud上
+
+[index](index.png)
