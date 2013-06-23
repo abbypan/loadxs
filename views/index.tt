@@ -2,19 +2,50 @@
 <head><meta http-equiv=Content-Type content="text/html;charset=utf-8">
 </head>
 <body>
-<h1><center>小说导入<center></h1>
-<form method="POST" action="/book_to_wp">
-小说目录页&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="url" size="80"/><br />
-小说类别&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="categories" size="80"/><br />
-WordPress&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="wordpress" size="80"/><br />
-WordPress用户&nbsp;&nbsp;<input name="user" size="80"/><br />
-WordPress密码&nbsp;&nbsp;<input type="password" name="passwd" size="80"/><br />
-<input name="token" type="hidden" value=<% token %>/><br />
-<input type="submit" value="导入小说" />
+<div class="head_title">小说处理</div>
+<ul>
+<li> 支持将小说导出为TXT / HTML </li>
+<li> 支持将小说导入到WordPress </li>
+<li> 支持小说站点列表见： <a href="http://search.cpan.org/~abbypan/">Novel::Robot::Parser</a>&nbsp;系列模块</li>
+</ul>
+
+<div class="novel_form">
+<div class="form_title">导出TXT</div>
+<form method="POST" action="/book_to_txt" target="_blank">
+目录页<input name="url" size="50" value="" />
+<br />
+<input type="submit" value="导出" />
 </form>
-<hr>
-<form method="POST" action="/chapter_to_wp">
-小说章节页&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="url" size="80"/><br />
+</div>
+
+<div class="novel_form">
+<div class="form_title">导出HTML</div>
+<form method="POST" action="/book_to_html" target="_blank">
+目录页<input name="url" size="50" value="" />
+<br />
+<input type="submit" value="导出" />
+</form>
+</div>
+
+
+<div class="novel_form">
+<div class="form_title">导入WordPress</div>
+<form method="POST" action="/book_to_wp" target="_blank">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;目录页<input name="url" size="50"/><br />
+WordPress<input name="wordpress" size="30"/>
+用户<input name="user" size="10"/>
+密码<input type="password" name="passwd" size="10"/><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;类别<input name="category" size="10"/>
+标签<input name="tag" size="30"/>(以半角 , 分隔)
+<input name="token" type="hidden" value=<% token %>/>
+<br />
+&nbsp;&nbsp;&nbsp;<input type="submit" value="导入" />
+</form>
+</div>
+
+<!--
+<form method="POST" action="/chapter_to_wp" target="_blank">
+小说章节页<input name="url" size="50"/><br />
 章节序号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="id" size="80"/><br />
 小说类别&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="categories" size="80"/><br />
 WordPress&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="wordpress" size="80"/><br />
@@ -23,5 +54,9 @@ WordPress密码&nbsp;&nbsp;<input name="passwd" size="80"/><br />
 <input name="token" type="hidden" value=<% token %>/><br />
 <input type="submit" value="导入章节" />
 </form>
+-->
+<br />
+<br />
+<br />
 </body>
 </html>

@@ -1,0 +1,51 @@
+{
+   "abstract" : "LOAD NOVEL TO WORDPRESS",
+   "author" : [
+      "Abby Pan <abbypan@gmail.com>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "ExtUtils::MakeMaker version 6.64, CPAN::Meta::Converter version 2.112621",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "loadxs",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "inc"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : 0
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : 0
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "DBD::mysql" : 0,
+            "DBI" : 0,
+            "Dancer" : 0,
+            "Dancer::Plugin::Database" : 0,
+            "HTML::ElementTable" : 0,
+            "JSON" : 0,
+            "Novel::Robot" : 0,
+            "Plack" : 0,
+            "Test::More" : 0,
+            "WordPress::XMLRPC" : 0,
+            "YAML" : 0
+         }
+      }
+   },
+   "release_status" : "stable",
+   "version" : "0.1"
+}
