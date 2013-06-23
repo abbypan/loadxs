@@ -1,3 +1,5 @@
-下载小说，并导入指定wordpress站点
+在线处理小说工具
 
-可部署在dotcloud，例子：http://loadxs-abbypan.dotcloud.com/
+可将小说导出为 TXT / HTML
+可将小说导入指定wordpress站点
+也可部署在dotcloud上
