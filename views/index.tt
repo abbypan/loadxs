@@ -6,7 +6,14 @@
 <ul>
 <li> 支持将小说导出为TXT / HTML </li>
 <li> 支持将小说导入到WordPress </li>
-<li> 支持小说站点列表见： <a href="http://search.cpan.org/~abbypan/">Novel::Robot::Parser</a>&nbsp;系列模块</li>
+<li> 支持小说站点列表： 
+<ul>
+<li>绿晋江: <a href="http://www.jjwxc.net/">http://www.jjwxc.net/</a>
+<li>豆豆: <a href="http://www.dddbbb.net/">http://www.dddbbb.net/</a>
+<li>努努书坊: <a href="http://book.kanunu.org/">http://book.kanunu.org/</a>
+<li>书农: <a href="http://www.shunong.com/">http://www.shunong.com/</a>
+</ul>
+</li>
 </ul>
 
 <div class="novel_form">
@@ -31,7 +38,9 @@
 <div class="novel_form">
 <div class="form_title">导入WordPress</div>
 <form method="POST" action="/book_to_wp" target="_blank">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;目录页<input name="url" size="50"/><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;目录页<input name="url" size="45"/>
+章节号<input name="id" size="10"/>
+<br />
 WordPress<input name="wordpress" size="30"/>
 用户<input name="user" size="10"/>
 密码<input type="password" name="passwd" size="10"/><br />
