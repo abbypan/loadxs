@@ -7,6 +7,14 @@
 
 也可部署在dotcloud上
 
-![index](index.png)
+小说处理页
+![novel](novel.png)
 
-![html](export-html.png)
+小说导出为HTML
+![novel_to_html](novel_to_html.png)
+
+贴子处理页
+![tiezi](tiezi.png)
+
+贴子导出为HTML
+![tiezi_to_html](tiezi_to_html.png)
