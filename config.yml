@@ -31,14 +31,14 @@ engines:
      start_tag: '<%'
      end_tag:   '%>'
 
-plugins:
-    Database:
-        driver: 'mysql'
-        host: 'xxx.xxx.xxx'
-        database: 'xxx'
-        username: 'xxx'
-        password: 'xxx'
-        port: 12345
-        on_connect_do: 
-          - "SET NAMES 'utf8'"
-          - "SET CHARACTER SET 'utf8'"
+#plugins:
+    #Database:
+        #driver: 'mysql'
+        #host: 'xxx.xxx.xxx'
+        #database: 'xxx'
+        #username: 'xxx'
+        #password: 'xxx'
+        #port: 12345
+        #on_connect_do: 
+          #- "SET NAMES 'utf8'"
+          #- "SET CHARACTER SET 'utf8'"
