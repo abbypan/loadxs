@@ -1,12 +1,20 @@
-在线处理小说工具
+小说/贴子在线处理
 ================
 
-可将小说导出为 TXT / HTML
+可将 小说/贴子 导出为 TXT / HTML
 
-可将小说导入指定wordpress站点
+可将 小说 导入指定wordpress站点
 
-也可部署在dotcloud上
+支持部署在dotcloud上
 
-![index](index.png)
+小说处理
+![novel](novel.png)
 
-![html](export-html.png)
+将小说导出为HTML
+![noveltohtml](novel_to_html.png)
+
+贴子处理
+![tiezi](tiezi.png)
+
+将贴子导出为HTML
+![tiezitohtml](tiezi_to_html.png)
