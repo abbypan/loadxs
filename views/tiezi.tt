@@ -4,7 +4,7 @@
 <body>
 <div class="head_title">贴子处理</div>
 <ul>
-<li> 支持将贴子导出为 HTML </li>
+<li> 支持将贴子导出为 HTML/TXT </li>
 <li> 支持站点： 
 <ul>
 <li>红晋江: <a href="http://bbs.jjwxc.net/">http://bbs.jjwxc.net/</a>
@@ -22,6 +22,15 @@
 </form>
 </div>
 
+<div class="novel_form">
+<div class="form_title">导出TXT</div>
+<form method="POST" action="/tiezi_to_txt" target="_blank">
+贴子页<input name="url" size="40" value="" />
+，前<input name="max_page_num" size="5"/>页，前<input name="max_floor_num" size="5"/>楼<br/>
+<input type="checkbox" name="only_poster">只看楼主，<input type="checkbox" name="with_toc" value="1" checked>生成目录，每楼最少<input name="min_word_num" size="5"/>字<br/>
+<input type="submit" value="导出" />
+</form>
+</div>
 
 </body>
 </html>

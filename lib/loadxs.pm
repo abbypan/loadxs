@@ -68,7 +68,7 @@ post '/book_to_wp' => sub {
     $Novel->set_parser($index_url);
 
     my $id = param('id');
-    $wp_opt->{chapter_ids} = split_chapter_ids($id) if($id);
+    $wp_opt->{chapter_ids} = $Novel->split_id_list($id) if($id);
     my $data = $Novel->get_book($index_url, $wp_opt);
     redirect $$data;
 };
@@ -76,6 +76,16 @@ post '/book_to_wp' => sub {
 get '/tiezi' => sub {
     template 'tiezi';
 };
+
+sub read_tiezi_option {
+    my @fields =
+      qw/with_toc only_poster min_word_num max_page_num max_floor_num/;
+    my %opt;
+    for my $f (@fields) {
+        $opt{$f} = param($f) // undef;
+    }
+    return \%opt;
+}
 
 post '/tiezi_to_html' => sub {
     my $index_url = param('url');
@@ -90,6 +100,7 @@ post '/tiezi_to_html' => sub {
     for my $f (@fields) {
         $opt{$f} = param($f) // undef;
     }
+
     $opt{write_scalar} = 1;
 
 
@@ -99,20 +110,29 @@ post '/tiezi_to_html' => sub {
     decode('utf8', $$data);
 };
 
+post '/tiezi_to_txt' => sub {
+    my $Tiezi = Tiezi::Robot->new();
+    $Tiezi->set_packer('TXT');
+
+    my $index_url = param('url');
+    $Tiezi->set_parser($index_url);
+
+    my $opt= read_tiezi_option();
+    $opt->{write_scalar} = 1;
+
+    my $data = $Tiezi->get_tiezi($index_url, $opt);
+
+    my ($file) = $$data =~ m#^\s*(.+?)\n#s;
+    $file =~ s/\s*《/-/;
+    $file =~ s/》\s*//;
+
+    $$data = decode('utf8', $$data);
+
+    send_file(
+        $data,
+        content_type => 'text/plain',
+        filename     => "$file.txt",
+    );
+};
+
 true;
-
-
-sub split_chapter_ids {
-    my ($id) = @_;
-
-    my @id_list = split ',', $id;
-
-    my @chap_ids;
-    for my $i (@id_list) {
-        my ( $s, $e ) = split '-', $i;
-        $e ||= $s;
-        push @chap_ids, ( $s .. $e );
-    }
-
-    return \@chap_ids;
-}
