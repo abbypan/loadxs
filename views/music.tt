@@ -45,5 +45,10 @@
 </form>
 </div>
 
+<br><br>
+<p>
+直接播放要设置：http://zhangmenshiting.baidu.com 站点的referer为 http://music.baidu.com
+</p>
+
 </body>
 </html>
