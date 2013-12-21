@@ -8,6 +8,7 @@
 <li> 支持指定音质在浏览器直接播放（不支持flac）</li>
 <li> 支持生成xspf播放列表，用于vlc在线播放（支持flac）</li>
 <li> 支持生成bat/ps1批量下载音乐到本地</li>
+<li> 注意，直接播放需要设置：http://zhangmenshiting.baidu.com 的referer为 http://music.baidu.com
 </ul>
 
 <div class="novel_form">
@@ -44,11 +45,6 @@
 <input type="submit" value="处理" />
 </form>
 </div>
-
-<br><br>
-<p>
-直接播放要设置：http://zhangmenshiting.baidu.com 站点的referer为 http://music.baidu.com
-</p>
 
 </body>
 </html>
