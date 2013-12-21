@@ -4,6 +4,7 @@ use Novel::Robot;
 use Tiezi::Robot;
 use Encode;
 use Data::Dumper;
+use File::Slurp;
 $|=1;
 
 our $VERSION  = '0.1';
@@ -23,7 +24,8 @@ post '/book_to_html' => sub {
     my $data = $Novel->get_book($index_url, { write_scalar => 1 });
 
     set content_type => ' text/html';
-    decode('utf8', $$data);
+    #decode('utf8', $$data);
+    $$data;
 };
 
 post '/book_to_txt' => sub {
@@ -39,7 +41,7 @@ post '/book_to_txt' => sub {
     $file =~ s/\s*《/-/;
     $file =~ s/》\s*//;
 
-    $$data = decode('utf8', $$data);
+    #$$data = decode('utf8', $$data);
 
     send_file(
         $data,
@@ -107,7 +109,8 @@ post '/tiezi_to_html' => sub {
     my $data = $Tiezi->get_tiezi( $index_url, \%opt );
 
     set content_type => 'text/html';
-    decode('utf8', $$data);
+    #decode('utf8', $$data);
+    $$data;
 };
 
 post '/tiezi_to_txt' => sub {
@@ -126,7 +129,7 @@ post '/tiezi_to_txt' => sub {
     $file =~ s/\s*《/-/;
     $file =~ s/》\s*//;
 
-    $$data = decode('utf8', $$data);
+    #$$data = decode('utf8', $$data);
 
     send_file(
         $data,
@@ -134,5 +137,44 @@ post '/tiezi_to_txt' => sub {
         filename     => "$file.txt",
     );
 };
+
+####
+
+get '/music' => sub {
+    template 'music';
+};
+
+any '/baidu_music_album' => sub {
+    my $type=param('type') || 'xspf';
+    my $url = param('url');
+    my $level = param('level') || 0;
+
+    $url=~s/\?.*//;
+    my $charset = param('charset') || 'utf8';
+
+    my ($id) = $url=~m{^\Qhttp://music.baidu.com/album/\E(\d+)$};
+    return 'album url error' unless($id); 
+
+    my $cmd="sudo perl baidu_music.pl -a $url -t $type -l $level";
+    my $data=`$cmd`;
+
+
+    if($type eq 'html'){
+        set content_type => ' text/html';
+        template 'music_list', { data => $data };
+    }else{
+        if($charset ne 'utf8' and $type ne 'xspf'){
+            $data=encode($charset, decode("utf8", $data)) ;
+            $data=~s/\n/\r\n/gs;
+        }
+        send_file(
+            \$data, 
+            content_type => 'text/plain',
+            filename     => "$id.$type",
+        );
+    }
+
+};
+
 
 true;
