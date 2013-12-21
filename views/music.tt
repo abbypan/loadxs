@@ -14,7 +14,7 @@
 <div class="form_title">专辑</div>
 <form method="POST" action="/baidu_music_album" target="_blank">
 
-专辑<input name="url" size="45"/>
+专辑<input name="url" size="35"/>
 音质
 <select name="level">
 <option value="0" selected="selected">最高</option>
