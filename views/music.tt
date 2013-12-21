@@ -1,0 +1,49 @@
+<html>
+<head><meta http-equiv=Content-Type content="text/html;charset=utf-8">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="head_title">百度音乐处理</div>
+<ul>
+<li> 支持指定音质在浏览器直接播放（不支持flac）</li>
+<li> 支持生成xspf播放列表，用于vlc在线播放（支持flac）</li>
+<li> 支持生成bat/ps1批量下载音乐到本地</li>
+</ul>
+
+<div class="novel_form">
+<div class="form_title">专辑</div>
+<form method="POST" action="/baidu_music_album" target="_blank">
+
+专辑<input name="url" size="45"/>
+音质
+<select name="level">
+<option value="0" selected="selected">最高</option>
+<option value="1">其次</option>
+<option value="2">再次</option>
+<option value="3">最差</option>
+</select>
+
+文件编码
+<select name="charset">
+<option value="cp936" selected="selected">gbk</option>
+<option value="utf8">utf8</option>
+</select>
+<br />
+
+目标
+<select name="type">
+<option value="html" selected="selected">直接播放</option>
+<option value="xspf">vlc播放列表</option>
+<option value="bat">wget批量下载</option>
+<option value="ps1">ps1批量下载</option>
+</select>
+
+<br/>
+
+
+<input type="submit" value="处理" />
+</form>
+</div>
+
+</body>
+</html>
