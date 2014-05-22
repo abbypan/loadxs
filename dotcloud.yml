@@ -1,7 +1,0 @@
-app:
-  type: perl
-  config: 
-    systempackages:
-      - libdbd-mysql-perl
-db:
-  type: mysql

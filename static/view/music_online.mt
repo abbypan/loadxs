@@ -1,12 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
     <meta charset="utf-8">
     <title>audio.js</title>
-    <script src="/javascripts/jquery.js"></script>
-    <script src="/javascripts/audiojs/audio.min.js"></script>
-    <link rel="stylesheet" href="/javascripts/audiojs/index.css" media="screen">
-    <script>
+    <script src="/js/jquery.js"></script>
+    <script src="/js/audiojs/audio.min.js"></script>
+    <link rel="stylesheet" href="/js/audiojs/index.css" media="screen">
+<script>
+//read music info
+$(document).ready( function() {
+
+var music_str = $('#music_data').html();
+var music_data = JSON.parse(music_str);
+var items = [];
+$.each(music_data, function(i, s) {
+    items.push('<li><a href="#" data-src="' + s.url + '">' + s.artist +'-' + s.title + ','+ s.kbps + 'kpbs' + '</a></li>');
+    });
+
+$('<ol/>', { html: items.join('') }).appendTo('#wrapper');
+
       $(function() { 
         // Setup the player to autoplay the next track
         var a = audiojs.createAll({
@@ -51,15 +63,17 @@
           }
         })
       });
+
+});
     </script>
   </head>
   <body>
+<div id="music_data" style="display:none;">
+<%= $_[0] %>
+</div>
   <div id="wrapper">
       <h1><em>百度音乐</em></h1>
       <audio preload></audio>
-      <ol>
-          <% data %>
-      </ol>
   </div>
 
   <div id="shortcuts">
@@ -70,7 +84,5 @@
           <p><em>Space</em>  暂停 </p>
       </div>
   </div>
-
-
   </body>
   </html>
