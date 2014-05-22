@@ -5,7 +5,6 @@ use Mojo::Template;
 use Encode;
 use Encode::Locale;
 use File::Temp qw/tempfile/;
-use lib '../Novel-Robot-Parser/lib';
 use Novel::Robot;
 use Tiezi::Robot;
 
@@ -141,7 +140,7 @@ sub format_music_cmd {
     return unless ($cmd);
     $cmd =
       qq[$MUSIC_BIN $cmd  -t "$opt{type}" -l "$opt{level}" -f "$opt{format}"];
-    $cmd = encode( locale => $cmd );
+    #$cmd = encode( locale => $cmd );
     return $cmd;
 }
 
