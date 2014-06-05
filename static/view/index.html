@@ -7,18 +7,23 @@
 
 
 <div class="form" id="novel">
-<div class="form_title">小说</div>
-<form method="POST" action="/get_book" target="_blank">
-目录页<input name="url" size="50" value="" />
-<br />
-<select name="type">
-<option value="web" selected="selected">在线阅读</option>
+<div class="form_title">小说/贴子</div>
+<form method="POST" action="/novel_robot" target="_blank">
+URL<input name="url" size="70" value="" />
+目标格式&nbsp;&nbsp; <select name="type">
+<option value="mobi" selected="selected">mobi</option>
+<option value="web">在线阅读</option>
 <option value="html">html</option>
 <option value="txt">txt</option>
-<option value="markdown">markdown</option>
-</select>
-<input type="checkbox" name="with_toc" id="with_toc" checked>生成目录<br/>
-<input type="submit" value="导出" />
+<option value="jekyll">jekyll</option>
+</select>，
+<input type="checkbox" name="only_poster">只看楼主，<input type="checkbox" name="with_toc" value="1" checked>生成目录
+<br />
+推送邮箱<input name="mail" size="70" value="" />
+章节/页码 <input name="min_tiezi_page" size="3"/>-<input name="max_tiezi_page" size="3"/>，前<input name="max_tiezi_floor_num" size="3"/>章/楼，每楼最少<input name="min_floor_word_num" size="3"/>字
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="submit" value="处理" />
 </form>
 
 找小说：
@@ -35,25 +40,11 @@
   })();
 </script>
 <gcse:searchbox-only></gcse:searchbox-only>
+
+<p> 说明：推送邮箱功能 需要设置信任 kindle@idouzi.tk，只推送mobi文件</p>
+<p> 说明：多个推送邮箱以英文逗号隔开，例如 xxx@yy.com,aaa@bb.com </p>
+<p> 说明：如果不指定推送邮箱，则根据指定目标格式下载、或在线阅读</p>
 </div>
-
-<br/>
-
-<div class="form" id="tiezi">
-<div class="form_title">贴子</div>
-<form method="POST" action="/get_tiezi" target="_blank">
-贴子页<input name="url" size="40" value="" />
-，前<input name="max_page_num" size="3"/>页，前<input name="max_floor_num" size="3"/>楼<br/>
-<select name="type">
-<option value="web" selected="selected">在线阅读</option>
-<option value="html">html</option>
-<option value="txt">txt</option>
-</select>
-<input type="checkbox" name="only_poster">只看楼主，<input type="checkbox" name="with_toc" value="1" checked>生成目录，每楼最少<input name="min_word_num" size="5"/>字<br/>
-<input type="submit" value="导出" />
-</form>
-</div>
-
 <br/>
 
 <div class="form" id="baidu_music">

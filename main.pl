@@ -1,20 +1,19 @@
+#!/usr/bin/perl
 use Mojolicious::Lite;
 use Mojolicious::Static;
 use Mojo::Template;
 
 use Encode;
 use Encode::Locale;
-use File::Temp qw/tempfile/;
+use File::Temp qw/tempfile /;
+use File::Slurp;
 use Novel::Robot;
-use Tiezi::Robot;
 
 ## DEFAULT {{
 use FindBin;
 our $STATIC_PATH = "$FindBin::RealBin/static";
 our $MUSIC_PATH  = "$FindBin::RealBin/../baidu_music/baidu_music.pl";
 our $MUSIC_BIN   = qq[export LC_ALL=zh_CN.UTF-8 && sudo perl $MUSIC_PATH ];
-#$MUSIC_BIN = qq[export LC_ALL=zh_CN.UTF-8 && sudo perl ../baidu_music/baidu_music.pl ];
-#$MUSIC_BIN = qq[perl ../baidu_music/baidu_music.pl ];
 ## }}
 
 ## {{static
@@ -30,29 +29,62 @@ get '/' => sub {
     $self->render_static('view/index.html');
 };
 
-post '/get_book' => sub {
+post '/novel_robot' => sub {
     my $self = shift;
     my $url  = $self->param('url');
     my $type = $self->param('type');
 
+    my @fields = qw/with_toc
+      only_poster
+      min_tiezi_page max_tiezi_page
+      max_tiezi_floor_num
+      min_floor_word_num
+      mail
+      /;
+    my %opt;
+
+    for my $f (@fields) {
+        $opt{$f} = $self->param($f) // undef;
+    }
+
+    my $err = qr/['"<>|]/;
+    my $err_flag = grep  { /$err/ } ($url,$type, values(%opt));
+    if($err_flag){
+        $self->render( text => 'arg error' );
+    }
+
+    $opt{min_chapter_num} = $opt{min_tiezi_page};
+    $opt{max_chapter_num} = $opt{max_tiezi_page};
+
     my $xs = Novel::Robot->new(
         site => $url,
-        type => $type eq 'web' ? 'html' : $type,
+        type => ( $type=~/^(web|mobi)$/) ? 'html' : $type,
     );
 
     my $html = 'fail';
-    my ( $data, $inf ) = $xs->get_book(
-        $url,
-        output_scalar => 1,
-        with_toc      => $self->param('with_toc'),
-    );
+    my ( $data, $inf ) = $xs->get_item( $url, %opt, output_scalar => 1, );
     $data ||= \$html;
 
-    if ( $type eq 'web' ) {
+    if ( $opt{mail} ) {
+        my $res = send_mobi_mail( $data, $inf, %opt ) || '*** fail ***';
+        $self->render( text =>
+              "$inf->{writer}  $inf->{title} => $opt{mail}\n
+              <br><pre>$res</pre>" );
+    }elsif($type eq 'mobi'){
+        my $bin = send_mobi( $data, $inf) || '';
+        my $file =
+          encode( "utf8",
+            format_filename("$inf->{writer}-$inf->{book}.mobi") );
+        $self->res->headers->content_type("application/octet-stream");
+        $self->res->headers->content_disposition(
+            qq[attachment;filename="$file"]);
+        $self->render( data => $bin, format => "mobi" );
+    }
+    elsif ( $type eq 'web' ) {
         $self->render( text => $$data );
     }
     else {
-        my $format = $type eq 'markdown' ? 'md' : $type;
+        my $format = $type eq 'jekyll' ? 'md' : $type;
         my $file =
           encode( "utf8",
             format_filename("$inf->{writer}-$inf->{book}.$format") );
@@ -62,42 +94,59 @@ post '/get_book' => sub {
     }
 };
 
-post '/get_tiezi' => sub {
-    my $self = shift;
-    my $url  = $self->param('url');
-    my $type = $self->param('type');
+sub make_mobi {
+    my ($h , $r ) = @_;
+    $r->{title} ||= $r->{book};
 
-    my @fields =
-      qw/with_toc only_poster min_word_num max_page_num max_floor_num/;
-    my %opt;
-    for my $f (@fields) {
-        $opt{$f} = $self->param($f) // undef;
-    }
 
-    my $tz = Tiezi::Robot->new(
-        site => $url,
-        type => $type eq 'web' ? 'html' : $type,
+    my  $f_html = "/tmp/kindle-".int(rand(9999999999)).".html";
+    open my $fh, '>:utf8', $f_html;
+    print $fh $$h;
+    close $fh;
+
+    my %conv = (
+        'authors'            => $r->{writer},
+        'title'              => $r->{title},
+        'chapter-mark'       => "none",
+        'page-breaks-before' => "/",
+        'max-toc-links'      => 0,
     );
+    my $conv_str = join( " ", map { qq[--$_ "$conv{$_}"] } keys(%conv) );
 
-    my ( $data, $inf ) = $tz->get_tiezi(
-        $url,
-        output_scalar => 1,
-        %opt,
-    );
+    my  $f_mobi = "/tmp/kindle-".int(rand(9999999999)).".mobi";
+    my $cmd = encode("utf8", qq[export LC_ALL=zh_CN.UTF-8 && ebook-convert "$f_html" "$f_mobi" $conv_str]);
+    `$cmd`;
+    unlink($f_html);
+    return $f_mobi;
+}
 
-    if ( $type eq 'web' ) {
-        $self->render( text => $$data );
-    }
-    else {
-        my $format = $type;
-        my $file   = encode( "utf8",
-            format_filename("$inf->{topic}{name}-$inf->{topic}{title}.$format")
-        );
-        $self->res->headers->content_disposition(
-            qq[attachment;filename="$file"]);
-        $self->render( text => $$data, format => $format );
-    }
-};
+sub send_mobi {
+#
+    my ( $h, $r) = @_;
+    my $f_mobi = make_mobi($h, $r);
+    my $bin = read_file($f_mobi,  binmode => ':raw' );
+    unlink($f_mobi);
+    return $bin;
+}
+
+sub send_mobi_mail {
+    my ( $h, $r, %opt ) = @_;
+
+    my $res;
+    $res.="html content length : ".length($$h)."<br><br>";
+
+    my $f_mobi = make_mobi($h, $r);
+
+    my $s_cmd =
+qq[export LC_ALL=zh_CN.UTF-8 && sendemail -vv -f 'kindle\@idouzi.tk' -t '$opt{mail}' -a $f_mobi -u '$r->{writer} $r->{title}' -m '$r->{url}'];
+
+    $s_cmd = encode( "utf8", $s_cmd );
+    $res .= `$s_cmd`;
+
+    unlink($f_mobi);
+
+    return decode("utf8", $res);
+}
 
 ## }}
 ## {{
@@ -140,13 +189,14 @@ sub format_music_cmd {
     return unless ($cmd);
     $cmd =
       qq[$MUSIC_BIN $cmd  -t "$opt{type}" -l "$opt{level}" -f "$opt{format}"];
+
     #$cmd = encode( locale => $cmd );
     return $cmd;
 }
 
 sub get_music_data {
-    my ( $self, $cmd )      = @_;
-    my ( $fh,   $filename ) = tempfile();
+    my ( $self, $cmd ) = @_;
+    my ( $fh, $filename ) = tempfile( 'music-XXXXXXXXXX', TMPDIR => 1 );
 
     $cmd .= " -o $filename";
     `$cmd`;
