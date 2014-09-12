@@ -58,7 +58,7 @@ post '/novel_robot' => sub {
 
     my $xs = Novel::Robot->new(
         site => $url,
-        type => ( $type=~/^(web|mobi)$/) ? 'html' : $type,
+        type => ( $type=~/^(web|mobi)$/ or $opt{mail} ) ? 'html' : $type,
     );
 
     my $html = 'fail';
@@ -137,13 +137,25 @@ sub send_mobi_mail {
 
     my $f_mobi = make_mobi($h, $r);
 
+    my $f_zip = "$f_mobi.zip";
+use Archive::Zip;
+my $zip = Archive::Zip->new();
+my $member = $zip->addFile($f_mobi, "$r->{writer}-$r->{title}.mobi");
+$zip->writeToFileNamed($f_zip);
+
+#    $res.="<pre> $f_mobi\n".`stat "$f_mobi"`."</pre><br><br>";
+#    `zip "$f_zip" "$f_mobi"`;
+#    unlink($f_mobi);
+#    $res.="<pre> $f_zip\n".`stat "$f_zip"`."</pre><br><br>";
+
+my $email = 'kindle@idouzi.tk';
+#my $email = 'kindle@x8he.chinacloudapp.cn';
     my $s_cmd =
-qq[export LC_ALL=zh_CN.UTF-8 && sendemail -vv -f 'kindle\@idouzi.tk' -t '$opt{mail}' -a $f_mobi -u '$r->{writer} $r->{title}' -m '$r->{url}'];
+qq[export LC_ALL=zh_CN.UTF-8 && sendemail -vv -f '$email' -t '$opt{mail}' -a $f_zip -u '$r->{writer} $r->{title}' -m '$r->{url}'];
 
     $s_cmd = encode( "utf8", $s_cmd );
     $res .= `$s_cmd`;
-
-    unlink($f_mobi);
+    unlink($f_zip);
 
     return decode("utf8", $res);
 }
