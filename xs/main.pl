@@ -1,121 +1,101 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Mojolicious::Lite;
-#plugin 'ReplyTable';
-use Mojolicious::Static;
-use Mojo::Template;
 
-#use File::Temp qw/tempfile /;
-#use Novel::Robot;
-#use Web::Scraper;
-use Data::Dumper;
-use Digest::MD5 qw(md5_hex);
-use Encode::Locale;
-use Encode;
-use File::Slurp;
-use HTTP::Tiny;
+use FindBin;
 use JSON;
+use Mojo::Template;
+use Mojolicious::Lite;
+use Mojolicious::Static;
 use POSIX qw/strftime/;
-use Simple::Html;
 use SimpleDBI;
 
 ## config {{
-our $BEAR_PWD = 'mypwd';
-our $MYSQL = SimpleDBI->new(
-    type   => 'mysql',
-    db     => 'novel',
-    host   => 'localhost',
-    port   => '3066',
-    usr    => 'mydbusr',
-    passwd => 'mydbpwd',
+our $BARE_PWD = 'mypwd';
+our $MYSQL    = SimpleDBI->new(
+  type   => 'mysql',
+  db     => 'novel',
+  host   => 'localhost',
+  port   => '3066',
+  usr    => 'mydbusr',
+  passwd => 'mydbpwd',
 );
 ## }}
 
-## DEFAULT {{
-use FindBin;
-our $STATIC_PATH = "$FindBin::RealBin/static";
-## }}
-
-## {{static
 my $static = app->static();
-push @{ $static->paths }, $STATIC_PATH;
-
-#use Cwd;
-#app->static->paths->[0] = getcwd;
-#}
+push @{ $static->paths }, "$FindBin::RealBin/static";
 
 get '/' => sub {
-    my $self = shift;
-    $self->render( template => 'index', format => 'html', handler => 'ep' );
+  my $self = shift;
+  $self->render( template => 'index', format => 'html', handler => 'ep' );
 };
 
 post '/get_lofter' => sub {
-    my $self = shift;
-    my %s = check_param( $self, [qw/w b m update/], 'mypwd' );
-    return unless (%s);
-    if ( !$s{w} or !$s{b} ) {
-        $self->render( text => 'arg error' );
-    }
+  my $self = shift;
+  my %s = check_param( $self, [qw/w b m update/], $BARE_PWD );
+  return unless ( %s );
+  if ( !$s{w} or !$s{b} ) {
+    $self->render( text => 'arg error' );
+  }
 
-    $s{func} = 'get_lofter';
-    my $text = add_novel_task( \%s );
-    $self->render( text => "<pre>$text</pre>" );
+  $s{func} = 'get_lofter';
+  my $text = add_novel_task( \%s );
+  $self->render( text => "<pre>$text</pre>" );
 };
 
 post '/get_novel' => sub {
-    my $self = shift;
+  my $self = shift;
 
-    my @fields = qw/u T t
-      C A N G F
-      min_page_num max_page_num
-      min_item_num max_item_num
-      update
-      /;
-    my %opt = check_param( $self, \@fields, 'mypwd' );
-    return unless (%opt);
-    if ( !$opt{url} ) {
-        $self->render( text => 'arg error' );
-    }
+  my @fields = qw/u T t
+    C A N G F
+    min_page_num max_page_num
+    min_item_num max_item_num
+    update
+    /;
+  my %opt = check_param( $self, \@fields, $BARE_PWD );
+  return unless ( %opt );
+  if ( !$opt{url} ) {
+    $self->render( text => 'arg error' );
+  }
 
-    $opt{func} = 'get_novel';
-    my $text = add_novel_task( \%opt );
-    $self->render( text => "<pre>$text</pre>" );
+  $opt{func} = 'get_novel';
+  my $text = add_novel_task( \%opt );
+  $self->render( text => "<pre>$text</pre>" );
 
 };
 
 ############start sub {
 
 sub add_novel_task {
-    my ($task) = @_;
-    my $task_info = decode( "utf8", encode_json($task) );
-    my $rand = strftime( "%Y%m%d%H%M%S", localtime ) . int( rand(99999999999) );
-    $MYSQL->load_table(
-        [ [ $task_info, 0, $rand ] ],
-        table   => 'novel_task',
-        field   => [qw/task flag rand/],
-        replace => 1,
-        charset => 'utf8',
-        sep     => '###',
-    );
-    return $task_info;
+  my ( $task ) = @_;
+  my $task_info = decode( "utf8", encode_json( $task ) );
+  my $rand = strftime( "%Y%m%d%H%M%S", localtime ) . int( rand( 99999999999 ) );
+  $MYSQL->load_table(
+    [ [ $task_info, 0, $rand ] ],
+    table   => 'novel_task',
+    field   => [qw/task flag rand/],
+    replace => 1,
+    charset => 'utf8',
+    sep     => '###',
+  );
+  return $task_info;
 }
 
 sub check_param {
-    my ( $self, $field_list, $check_pwd ) = @_;
+  my ( $self, $field_list, $check_pwd ) = @_;
 
-    if ( defined($check_pwd) ) {
-        my $pwd = $self->param('pwd');
-        return unless ( $pwd eq $check_pwd );
-    }
+  if ( defined( $check_pwd ) ) {
+    my $pwd = $self->param( 'pwd' );
+    return unless ( $pwd eq $check_pwd );
+  }
 
-    my %x;
-    for my $f (@$field_list) {
-        my $v = $self->param($f) // '';
-        next unless ( $v and $v !~ /[{}\[\]\(\);'"<>|]/ );
-        $x{$f} = $v;
-    }
-    return %x;
+  my %x;
+  for my $f ( @$field_list ) {
+    my $v = $self->param( $f ) // '';
+    next unless ( $v and $v !~ /[{}\[\]\(\);'"<>|]/ );
+    $x{$f} = $v;
+  }
+  return %x;
 }
 
 # }

@@ -3,7 +3,7 @@
 
 将 小说/贴子 导出为txt/html/mobi/epub，支持推送到指定电子邮件地址，支持自动追文
 
-密码采用最简单的bear token模式，以https访问页面
+密码采用最简单的bare token模式，以https访问页面
 
 ![loadxs.png](loadxs.png)
 
@@ -29,12 +29,12 @@ snaked 目录负责执行小说下载及更新任务，使用perl的snaked模块
     apt-get -y install libapache2-mod-php php php-pear php-curl
     apt-get -y install mariadb-server php-mysql
     apt-get -y install imagemagick php-imagick php-gd
-    apt-get -y exim4 ansible
+    apt-get -y install exim4 ansible rsync sendemail
+    cpanm -n snaked
+    cpanm -n Novel::Robot SimpleDBI
     cpanm -n Plack Plack::Handler::Apache2 
     cpanm -n Mojolicious::Lite Mojolicious::Static Mojo::Template 
-    cpanm -n Encode::Locale File::Temp File::Slurp Novel::Robot 
-    cpanm -n HTTP::Tiny SimpleR::Reshape SimpleDBI::mysql
-    cpanm -n snaked
+    cpanm -n Encode::Locale JSON Capture::Tiny Digest::MD5
 
 ## novel_task 存放即时指定下载的任务
 
