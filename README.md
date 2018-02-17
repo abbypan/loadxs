@@ -1,40 +1,67 @@
-小说/贴子 在线处理
-================
+自动追文
+========
 
-在线阅读 小说/贴子
+将 小说/贴子 导出为txt/html/mobi/epub，支持推送到指定电子邮件地址，支持自动追文
 
-将 小说/贴子 导出为 txt/html/mobi
+密码采用最简单的bear token模式，以https访问页面
 
-将 小说/贴子 的mobi推送到指定邮箱
+![loadxs.png](loadxs.png)
 
-![novel](novel.png)
+# 说明
 
-![noveltohtml](novel_to_html.png)
+以debian环境为例，需要安装apache2, MariaDB, ansible, exim4, ansible, Novel::Robot等相关工具
 
-![tiezitohtml](tiezi_to_html.png)
+xs 目录为web页面代码，使用perl的mojo开发，负责在线写入任务到数据库
 
-# novel_to_kindle 
+snaked 目录负责执行小说下载及更新任务，使用perl的snaked模块
 
-每天自动将指定小说/贴子的mobi推送到指定kindle邮箱
+假设:
 
-注意需要在**亚马逊**配置允许信任当前推送server的邮箱地址
+1) 推送的exim4邮件服务器为 mail.myebookserver.com，推送源邮箱为 kindle@myebookserver.com
 
-编辑``novel_to_kindle.pl``中的``$SERVER``、``$MYSQL``配置信息
+2) 在线临时存放小说的服务器为web.myebookserver.com，路径为/var/www/html/ebook，对应的web地址为 http://web.myebookserver.com/ebook/
 
-## 安装perl模块
+3) 注意需要在**亚马逊**配置kindle@myebookserver.com为可信来源
 
-``cpanm Novel::Robot HTTP::Tiny SimpleR::Reshape SimpleDBI::mysql``
+## 安装
 
-## 新建数据库表格
+    apt-get -y install apache2 libapache2-mod-perl2
+    apt-get -y install libapache2-mod-php php php-pear php-curl
+    apt-get -y install mariadb-server php-mysql
+    apt-get -y install imagemagick php-imagick php-gd
+    apt-get -y exim4 ansible
+    cpanm -n Plack Plack::Handler::Apache2 
+    cpanm -n Mojolicious::Lite Mojolicious::Static Mojo::Template 
+    cpanm -n Encode::Locale File::Temp File::Slurp Novel::Robot 
+    cpanm -n HTTP::Tiny SimpleR::Reshape SimpleDBI::mysql
+    cpanm -n snaked
 
-    CREATE TABLE `push_to_kindle` (
-      `url` varchar(150) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-      `mail` varchar(50) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-      `novel_id` int(11) DEFAULT NULL,
-      `note` varchar(50) CHARACTER SET utf8 DEFAULT NULL,
-      PRIMARY KEY (`url`,`mail`)
-    )
+## novel_task 存放即时指定下载的任务
 
-## 加入crontab
+    MariaDB [novel]> desc novel_task;
+    +-------+-------------+------+-----+-------------------+-------+
+    | Field | Type        | Null | Key | Default           | Extra |
+    +-------+-------------+------+-----+-------------------+-------+
+    | time  | timestamp   | NO   | MUL | CURRENT_TIMESTAMP |       |
+    | rand  | varchar(30) | YES  |     | NULL              |       |
+    | task  | text        | YES  |     | NULL              |       |
+    | flag  | int(11)     | YES  |     | NULL              |       |
+    +-------+-------------+------+-----+-------------------+-------+
+    4 rows in set (0.00 sec)
 
-``0 16 * * *   cd /somepath && /usr/bin/perl novel_to_kindle.pl >/dev/null 2>&1``
+## update_novel 存放每天自动追文的任务
+
+    MariaDB [novel]> desc update_novel;
+    +----------+--------------+------+-----+-------------------+-----------------------------+
+    | Field    | Type         | Null | Key | Default           | Extra                       |
+    +----------+--------------+------+-----+-------------------+-----------------------------+
+    | url      | varchar(100) | YES  |     | NULL              |                             |
+    | mail     | varchar(100) | YES  |     | NULL              |                             |
+    | novel_id | tinyint(4)   | YES  |     | NULL              |                             |
+    | note     | varchar(50)  | NO   | PRI |                   |                             |
+    | time     | timestamp    | NO   |     | CURRENT_TIMESTAMP | on update CURRENT_TIMESTAMP |
+    | writer   | varchar(50)  | YES  |     | NULL              |                             |
+    | book     | varchar(50)  | YES  |     | NULL              |                             |
+    | site     | varchar(50)  | YES  |     | NULL              |                             |
+    +----------+--------------+------+-----+-------------------+-----------------------------+
+    8 rows in set (0.00 sec)

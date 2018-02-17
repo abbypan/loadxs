@@ -1,0 +1,86 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use utf8;
+use Data::Dumper;
+use Encode::Locale;
+use Encode;
+use Getopt::Std;
+use JSON;
+use Novel::Robot;
+use SimpleDBI;
+use FindBin;
+use Capture::Tiny ':all';
+use Digest::MD5 qw(md5_hex);
+
+
+$| = 1;
+#binmode( STDIN, ":encoding(console_in)" );
+#binmode( STDOUT, ":encoding(console_out)" );
+#binmode( STDERR, ":encoding(console_out)" );
+
+## configure {{
+my $h = "mail.myebookserver.com";
+our $MAIL_S = " -S '-f kindle\@myebookserver.com' -h $h";
+our $MYSQL = SimpleDBI->new(
+    type => 'mysql',
+    db     => 'novel',
+    host   => 'localhost',
+    port => '3066', 
+    usr    => 'mydbusr',
+    passwd => 'mydbpwd',
+);
+## }}
+
+my $task_r = $MYSQL->query_db(qq[select rand,task from novel_task where flag=0]);
+my $task = $task_r->[0];
+exit unless($task);
+$MYSQL->{dbh}->do(qq[update novel_task set flag=1 where rand=$task->[0] and flag=0]);
+
+print $task->[1], "\n";
+my $r = decode_json(encode("utf-8", $task->[1]));
+if($r->{func} eq 'save_novel'){
+    system(qq[$FindBin::RealBin/save_novel.pl "$r->{u}" "$r->{c}" "$r->{t}" "$r->{m}"]);
+}elsif($r->{func} eq 'get_lofter'){
+    my ($c, $stderr) = capture {
+        #system(qq[$FindBin::RealBin/get_lofter.pl -w "$r->{w}" -b "$r->{b}" -m "$r->{m}"]);
+        system(qq[run_novel.pl -s lofter -w "$r->{w}" -b "$r->{b}" -T txt -t "$r->{m}" $MAIL_S]);
+    };
+    if($r->{update} eq 'on'){
+        my ($last_id) = $c=~m#last_floor_num: (\d+)\n#s;
+        $last_id ||= 0;
+        my $note = md5_hex(encode('utf8', qq[lofter-$r->{w}-$r->{b}-$r->{m}]));
+        $MYSQL->{dbh}->do(qq[insert into update_novel(site,writer,book,novel_id,mail,note) values('lofter', "$r->{w}", "$r->{b}", $last_id, "$r->{m}",'$note')]);
+    }
+}elsif($r->{func} eq 'get_novel'){
+    get_novel_cmd($r);
+}
+
+$MYSQL->{dbh}->do(qq[update novel_task set flag=2 where rand=$task->[0] and flag=1]);
+
+sub get_novel_cmd {
+    my ($r) = @_;
+    my $cmd = 'run_novel.pl ';
+    $cmd .= join(" ", map { qq[ -$_ "$r->{$_}"] } grep { $r->{$_} } qw/u T t/);
+    $r->{i} = ($r->{min_item_num} or $r->{max_item_num}) ? "$r->{min_item_num}-$r->{max_item_num}" : '';
+    $r->{P} = ($r->{min_page_num} or $r->{max_page_num}) ? "$r->{min_page_num}-$r->{max_page_num}" : '';
+    $cmd .= join(" ", " -G '", map { qq[ -$_ "$r->{$_}" ] } grep { $r->{$_} } qw/C A N G F i P/). " ' ";
+    if($r->{t}){
+        $cmd .= $MAIL_S;
+    }else{
+        $cmd .= q[ -o /var/www/html/ebook/ ];
+    }
+    print $cmd, "\n";
+    system($cmd);
+    system(q[/usr/bin/rsync -vazu --delete  -L /var/www/html/ebook/ root@web.myebookserver.com:/var/www/html/ebook]);
+
+    if($r->{update} eq 'on'){
+        my $c=`get_novel.pl -u "$r->{u}" -D 1`;
+        chomp($c);
+        my @d = split /,/, $c;
+        my ($n) = $d[-1];
+        $n ||= 0;
+        my $note = md5_hex(encode('utf8', qq[$r->{u}-$r->{t}]));
+        $MYSQL->{dbh}->do(qq[insert into update_novel(url,novel_id,mail,note,writer,book) values("$r->{u}", "$n", "$r->{t}",'$note','$d[0]','$d[1]')]);
+    }
+}

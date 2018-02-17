@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+use utf8;
+use Novel::Robot;
+use HTTP::Tiny;
+use SimpleR::Reshape;
+use SimpleDBI;
+use Encode;
+use Encode::Locale;
+use Data::Dumper;
+use POSIX qw/strftime/;
+
+## configure {{
+my $h = "mail.myebookserver.com";
+our $MAIL_S = " -S '-f kindle\@myebookserver.com' -h $h";
+our $MYSQL = SimpleDBI->new(
+    type => 'mysql',
+    db     => 'novel',
+    host   => 'localhost',
+    port => '3066', 
+    usr    => 'mydbusr',
+    passwd => 'mydbpwd',
+);
+## }}
+
+my $data = $MYSQL->query_db( 'select url,novel_id,mail,site,writer,book from update_novel', result_type => 'arrayref', );
+for my $r (@$data) {
+    my ( $url, $id, $mail, $site, $writer, $book ) = @$r;
+    $id //= 0;
+    $id++;
+
+    my $cmd;
+    if($url){
+        print "check $url, $id, $mail\n";
+        $cmd= qq[/usr/local/bin/run_novel.pl -u "$url" -t "$mail" -G "-i $id-" $MAIL_S];
+    }else{
+        print encode(locale=>"check $site, $writer, $book, $id, $mail\n");
+        $cmd = qq[/usr/local/bin/run_novel.pl -s "$site" -w "$writer" -b "$book" -T txt -t "$mail" -G " -i $id-" $MAIL_S];
+    }
+
+    print $cmd,"\n";
+    my $c=`$cmd`;
+    my ($last_id) = $c =~ m#last_floor_num: (\d+)\n#s;
+    next unless($last_id);
+    print "find last id: $last_id\n";
+
+    if($url){
+        $c= decode(locale=>$c);
+        ( $writer, $book ) = $c =~ m#send ebook : (.+?)\s*《(.+?)》#s unless($writer=~/\S/ and $book=~/\S/);
+        print encode(locale=>"writer, book: $writer, $book\n");
+        $MYSQL->{dbh}->do(
+            qq{update update_novel set novel_id=$last_id,writer='$writer',book='$book' where url='$url' and mail='$mail'}
+        );
+    }else{
+        $MYSQL->{dbh}->do(
+            qq{update update_novel set novel_id=$last_id where site='$site' and writer='$writer' and book='$book' and mail='$mail'}
+        );
+    }
+}
