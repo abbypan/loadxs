@@ -19,6 +19,8 @@ $| = 1;
 ## config {{
 my $h = "mail.myebookserver.com";
 our $MAIL_S = " -S '-f kindle\@myebookserver.com' -h $h";
+our $WEB_S = 'web.myebookserver.com';
+our $WEB_PATH = '/var/www/html/ebook';
 our $MYSQL  = SimpleDBI->new(
   type   => 'mysql',
   db     => 'novel',
@@ -72,11 +74,12 @@ sub get_novel_cmd {
   if ( $r->{t} ) {
     $cmd .= $MAIL_S;
   } else {
-    $cmd .= q[ -o /var/www/html/ebook/ ];
+    $cmd .= qq[ -o $WEB_PATH/ ];
   }
-  print $cmd, "\n";
-  system( $cmd);
-  system( q[/usr/bin/rsync -vazu --delete  -L /var/www/html/ebook/ root@web.myebookserver.com:/var/www/html/ebook] );
+  print "$cmd\n";
+  system($cmd);
+  system(qq[mkdir -p "$WEB_PATH"]);
+  system(qq[/usr/bin/rsync -vazu --delete  -L $WEB_PATH/ root\@$WEB_S:$WEB_PATH] );
 
   if ( $r->{update} eq 'on' ) {
     my $c = `get_novel.pl -u "$r->{u}" -D 1`;

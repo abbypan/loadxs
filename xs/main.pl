@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 
+use Encode;
 use FindBin;
 use JSON;
 use Mojo::Template;
