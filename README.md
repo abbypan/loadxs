@@ -29,7 +29,7 @@ snaked 目录负责执行小说下载及更新任务，使用perl的snaked模块
     apt-get -y install libapache2-mod-php php php-pear php-curl
     apt-get -y install mariadb-server php-mysql
     apt-get -y install imagemagick php-imagick php-gd
-    apt-get -y install exim4 ansible rsync sendemail
+    apt-get -y install exim4 ansible rsync sendemail calibre
     cpanm -n snaked
     cpanm -n Novel::Robot SimpleDBI
     cpanm -n Plack Plack::Handler::Apache2 
@@ -57,7 +57,7 @@ snaked 目录负责执行小说下载及更新任务，使用perl的snaked模块
     +----------+--------------+------+-----+-------------------+-----------------------------+
     | url      | varchar(100) | YES  |     | NULL              |                             |
     | mail     | varchar(100) | YES  |     | NULL              |                             |
-    | novel_id | tinyint(4)   | YES  |     | NULL              |                             |
+    | novel_id | smallint     | YES  |     | NULL              |                             |
     | note     | varchar(50)  | NO   | PRI |                   |                             |
     | time     | timestamp    | NO   |     | CURRENT_TIMESTAMP | on update CURRENT_TIMESTAMP |
     | writer   | varchar(50)  | YES  |     | NULL              |                             |
