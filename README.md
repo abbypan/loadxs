@@ -13,7 +13,12 @@
 
 xs 目录为web页面代码，使用perl的mojo开发，负责在线写入任务到数据库
 
-snaked 目录负责执行小说下载及更新任务，使用perl的snaked模块
+minion_worker_daemon 目录负责执行小说下载任务，使用perl的Minion模块
+
+/etc/snaked 目录负责执行小说更新任务，使用perl的snaked模块
+
+/etc/apache2/sites-enabled 目录下的conf文件为loadxs页面的apache2配置，假设使用letsencrypt的证书，域名为loadxs.myebookserver.com, 本地目录为/var/www/xs
+
 
 假设:
 
@@ -22,6 +27,7 @@ snaked 目录负责执行小说下载及更新任务，使用perl的snaked模块
 2) 在线临时存放小说的服务器为web.myebookserver.com，路径为/var/www/html/ebook，对应的web地址为 http://web.myebookserver.com/ebook/
 
 3) 注意需要在**亚马逊**配置kindle@myebookserver.com为可信来源
+
 
 ## 安装
 
@@ -35,21 +41,26 @@ snaked 目录负责执行小说下载及更新任务，使用perl的snaked模块
     cpanm -n Plack Plack::Handler::Apache2 
     cpanm -n Mojolicious::Lite Mojolicious::Static Mojo::Template 
     cpanm -n Encode::Locale JSON Capture::Tiny Digest::MD5
+    cpanm -n Minion
 
-## novel_task 存放即时指定下载的任务
+## minion 数据库存放即时指定下载的任务
 
-    MariaDB [novel]> desc novel_task;
-    +-------+-------------+------+-----+-------------------+-------+
-    | Field | Type        | Null | Key | Default           | Extra |
-    +-------+-------------+------+-----+-------------------+-------+
-    | time  | timestamp   | NO   | MUL | CURRENT_TIMESTAMP |       |
-    | rand  | varchar(30) | YES  |     | NULL              |       |
-    | task  | text        | YES  |     | NULL              |       |
-    | flag  | int(11)     | YES  |     | NULL              |       |
-    +-------+-------------+------+-----+-------------------+-------+
-    4 rows in set (0.00 sec)
+    MariaDB [minion]> show tables;
+    +-----------------------+
+    | Tables_in_minion      |
+    +-----------------------+
+    | minion_jobs           |
+    | minion_jobs_depends   |
+    | minion_locks          |
+    | minion_workers        |
+    | minion_workers_inbox  |
+    | mojo_migrations       |
+    | mojo_pubsub_notify    |
+    | mojo_pubsub_subscribe |
+    +-----------------------+
+    8 rows in set (0.000 sec)
 
-## update_novel 存放每天自动追文的任务
+## novel数据库的update_novel表存放每天自动追文的任务
 
     MariaDB [novel]> desc update_novel;
     +----------+--------------+------+-----+-------------------+-----------------------------+

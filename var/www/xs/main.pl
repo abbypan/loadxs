@@ -2,25 +2,18 @@
 use strict;
 use warnings;
 
-use Encode;
 use FindBin;
 use JSON;
 use Mojo::Template;
 use Mojolicious::Lite;
 use Mojolicious::Static;
 use POSIX qw/strftime/;
-use SimpleDBI;
+use Encode;
+
+plugin Minion => {mysql => 'mysql://mydbusr:mydbpwd@localhost/minion'};
 
 ## config {{
 our $BARE_PWD = 'mypwd';
-our $MYSQL    = SimpleDBI->new(
-  type   => 'mysql',
-  db     => 'novel',
-  host   => 'localhost',
-  port   => '3066',
-  usr    => 'mydbusr',
-  passwd => 'mydbpwd',
-);
 ## }}
 
 my $static = app->static();
@@ -39,8 +32,8 @@ post '/get_lofter' => sub {
     $self->render( text => 'arg error' );
   }
 
-  $s{func} = 'get_lofter';
   my $text = add_novel_task( \%s );
+  $self->minion->enqueue(get_lofter =>[$text]);
   $self->render( text => "<pre>$text</pre>" );
 };
 
@@ -48,7 +41,7 @@ post '/get_novel' => sub {
   my $self = shift;
 
   my @fields = qw/u T t
-    C A N G F
+    with_toc only_poster min_content_word_num grep_content filter_content
     min_page_num max_page_num
     min_item_num max_item_num
     update
@@ -59,8 +52,8 @@ post '/get_novel' => sub {
     $self->render( text => 'arg error' );
   }
 
-  $opt{func} = 'get_novel';
   my $text = add_novel_task( \%opt );
+  $self->minion->enqueue(get_novel =>[$text]);
   $self->render( text => "<pre>$text</pre>" );
 
 };
@@ -70,15 +63,6 @@ post '/get_novel' => sub {
 sub add_novel_task {
   my ( $task ) = @_;
   my $task_info = decode( "utf8", encode_json( $task ) );
-  my $rand = strftime( "%Y%m%d%H%M%S", localtime ) . int( rand( 99999999999 ) );
-  $MYSQL->load_table(
-    [ [ $task_info, 0, $rand ] ],
-    table   => 'novel_task',
-    field   => [qw/task flag rand/],
-    replace => 1,
-    charset => 'utf8',
-    sep     => '###',
-  );
   return $task_info;
 }
 
@@ -127,11 +111,11 @@ URL<input name="u" size="70" value="" />，密码<input name="pwd" value="" />
 </select>
 <br />
 推送邮箱<input name="t" size="70" value="" />
-, <input type="checkbox" name="A">只看楼主，<input type="checkbox" name="C" value="1" checked>生成目录
+, <input type="checkbox" name="only_poster">只看楼主，<input type="checkbox" name="with_toc" value="1" checked>生成目录
 <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;页码 <input name="min_page_num" size="3"/>-<input name="max_page_num" size="3"/>，章节/楼层 <input name="min_item_num" size="3"/>-<input name="max_item_num" size="3"/>，每楼最少<input name="N" size="3"/>字，<input type="checkbox" name="update">自动追文
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;页码 <input name="min_page_num" size="3"/>-<input name="max_page_num" size="3"/>，章节/楼层 <input name="min_item_num" size="3"/>-<input name="max_item_num" size="3"/>，每楼最少<input name="min_content_word_num" size="3"/>字，<input type="checkbox" name="update">自动追文
 <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;提取<input name="G" size="30" value="" />，过滤<input name="F" size="30" value="" />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;提取<input name="grep_content" size="30" value="" />，过滤<input name="filter_content" size="30" value="" />
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="submit" value="执行" />
