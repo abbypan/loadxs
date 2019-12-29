@@ -13,7 +13,7 @@
 
 xs 目录为web页面代码，使用perl的mojo开发，负责在线写入任务到数据库
 
-minion_worker_daemon 目录负责执行小说下载任务，使用perl的Minion模块
+/usr/local/bin/minion_worker.pl 负责执行小说下载任务，使用perl的Minion模块
 
 /etc/snaked 目录负责执行小说更新任务，使用perl的snaked模块
 
@@ -29,7 +29,7 @@ minion_worker_daemon 目录负责执行小说下载任务，使用perl的Minion�
 3) 注意需要在**亚马逊**配置kindle@myebookserver.com为可信来源
 
 
-## 安装
+# 安装
 
     apt-get -y install apache2 libapache2-mod-perl2
     apt-get -y install libapache2-mod-php php php-pear php-curl
@@ -43,7 +43,7 @@ minion_worker_daemon 目录负责执行小说下载任务，使用perl的Minion�
     cpanm -n Encode::Locale JSON Capture::Tiny Digest::MD5
     cpanm -n Minion
 
-## minion 数据库存放即时指定下载的任务
+# minion 数据库存放即时指定下载的任务
 
     MariaDB [minion]> show tables;
     +-----------------------+
@@ -60,7 +60,7 @@ minion_worker_daemon 目录负责执行小说下载任务，使用perl的Minion�
     +-----------------------+
     8 rows in set (0.000 sec)
 
-## novel数据库的update_novel表存放每天自动追文的任务
+# novel数据库的update_novel表存放每天自动追文的任务
 
     MariaDB [novel]> desc update_novel;
     +----------+--------------+------+-----+-------------------+-----------------------------+
@@ -76,3 +76,8 @@ minion_worker_daemon 目录负责执行小说下载任务，使用perl的Minion�
     | site     | varchar(50)  | YES  |     | NULL              |                             |
     +----------+--------------+------+-----+-------------------+-----------------------------+
     8 rows in set (0.00 sec)
+
+#  /etc/systemd/system/minion_worker.service 负责定期执行minion_worker.pl，避免程序失效
+
+    # systemctl enable minion_worker.service 
+    # systemctl start minion_worker.service

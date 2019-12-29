@@ -1,0 +1,9 @@
+[Unit]
+Description=Minion Worker
+
+[Service]
+ExecStart=/usr/local/bin/minion_worker.pl
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
