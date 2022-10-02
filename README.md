@@ -15,7 +15,7 @@ xs 目录为web页面代码，使用perl的mojo开发，负责在线写入任务
 
 /usr/local/bin/minion_worker.pl 负责执行小说下载任务，使用perl的Minion模块
 
-/etc/snaked 目录负责执行小说更新任务，使用perl的snaked模块
+crontab 负责执行小说更新任务
 
 /etc/apache2/sites-enabled 目录下的conf文件为loadxs页面的apache2配置，假设使用letsencrypt的证书，域名为loadxs.myebookserver.com, 本地目录为/var/www/xs
 
@@ -36,12 +36,11 @@ xs 目录为web页面代码，使用perl的mojo开发，负责在线写入任务
     apt-get -y install mariadb-server php-mysql
     apt-get -y install imagemagick php-imagick php-gd
     apt-get -y install exim4 ansible rsync sendemail calibre
-    cpanm -n snaked
     cpanm -n Novel::Robot SimpleDBI
     cpanm -n Plack Plack::Handler::Apache2 
     cpanm -n Mojolicious::Lite Mojolicious::Static Mojo::Template 
     cpanm -n Encode::Locale JSON Capture::Tiny Digest::MD5
-    cpanm -n Minion
+    cpanm -n Minion Config::Simple
 
 # minion 数据库存放即时指定下载的任务
 
@@ -81,3 +80,7 @@ xs 目录为web页面代码，使用perl的mojo开发，负责在线写入任务
 
     # systemctl enable minion_worker.service 
     # systemctl start minion_worker.service
+
+#  crontab
+
+    0 */6 * * * /usr/bin/perl /usr/local/bin/update_novel.pl >/tmp/update_novel.log 2>&1

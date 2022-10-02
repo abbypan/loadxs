@@ -19,6 +19,8 @@ our $BARE_PWD = 'mypwd';
 my $static = app->static();
 push @{ $static->paths }, "$FindBin::RealBin/static";
 
+#plugin 'Minion::Admin', { route => app->routes->any('/minion_admin'), };
+
 get '/' => sub {
   my $self = shift;
   $self->render( template => 'index', format => 'html', handler => 'ep' );
@@ -26,12 +28,13 @@ get '/' => sub {
 
 post '/get_lofter' => sub {
   my $self = shift;
-  my %s = check_param( $self, [qw/w b m update/], $BARE_PWD );
+  my %s = check_param( $self, [qw/w b m T update/], $BARE_PWD );
   return unless ( %s );
   if ( !$s{w} or !$s{b} ) {
     $self->render( text => 'arg error' );
   }
 
+  #$s{func} = 'get_lofter';
   my $text = add_novel_task( \%s );
   $self->minion->enqueue(get_lofter =>[$text]);
   $self->render( text => "<pre>$text</pre>" );
@@ -48,13 +51,14 @@ post '/get_novel' => sub {
     /;
   my %opt = check_param( $self, \@fields, $BARE_PWD );
   return unless ( %opt );
-  if ( !$opt{url} ) {
+  if ( !$opt{u} ) {
     $self->render( text => 'arg error' );
-  }
-
-  my $text = add_novel_task( \%opt );
-  $self->minion->enqueue(get_novel =>[$text]);
-  $self->render( text => "<pre>$text</pre>" );
+}else{
+    #$opt{func} = 'get_novel';
+    my $text = add_novel_task( \%opt );
+    $self->minion->enqueue(get_novel =>[$text]);
+    $self->render( text => "<pre>$text</pre>" );
+}
 
 };
 
@@ -102,9 +106,10 @@ __DATA__
 <div class="form" id="novel">
 <div class="form_title">下载</div>
 <form method="POST" action="/get_novel" target="_blank">
-URL<input name="u" size="70" value="" />，密码<input name="pwd" value="" />
+网址/书名<input name="u" size="70" value="" />，密码<input name="pwd" value="" />
 目标格式&nbsp;&nbsp; <select name="T">
-<option value="mobi" selected="selected">mobi</option>
+<option value="azw3" selected="selected">azw3</option>
+<option value="mobi">mobi</option>
 <option value="html">html</option>
 <option value="txt">txt</option>
 <option value="epub">epub</option>
@@ -128,7 +133,14 @@ URL<input name="u" size="70" value="" />，密码<input name="pwd" value="" />
 <div class="form" id="novel">
 <div class="form_title">网易lofter</div>
 <form method="POST" action="/get_lofter" target="_blank">
-<p>专栏ID<input name="w" size="20" value="" />.lofter.com, 密码<input name="pwd" value="" /></p>
+专栏ID<input name="w" size="20" value="" />.lofter.com, 密码<input name="pwd" value="" />
+目标格式&nbsp;&nbsp; <select name="T">
+<option value="txt" selected="selected">txt</option>
+<option value="mobi">mobi</option>
+<option value="html">html</option>
+<option value="epub">epub</option>
+</select>
+<br />
 <p>关键词<input name="b" size="30" value="" />，<input type="checkbox" name="update">自动追文</p>
 <p>目标邮箱<input name="m" size="30" value="" /></p>
 <p><input type="submit" value="推送" /></p>
