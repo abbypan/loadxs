@@ -9,17 +9,20 @@ use Mojolicious::Lite;
 use Mojolicious::Static;
 use POSIX qw/strftime/;
 use Encode;
+use Encode::Locale;
+use Env;
+use Config::Simple;
 
-plugin Minion => {mysql => 'mysql://mydbusr:mydbpwd@localhost/minion'};
+my %cnf;
+Config::Simple->import_from("$HOME/.novel/config.ini", \%cnf);
+$cnf{$_} = decode(locale => $cnf{$_}) for keys(%cnf);
 
-## config {{
-our $BARE_PWD = 'mypwd';
-## }}
+plugin Minion => {mysql => qq[mysql://$cnf{"db.usr"}:$cnf{"db.pwd"}\@$cnf{"db.host"}/minion]};
 
 my $static = app->static();
 push @{ $static->paths }, "$FindBin::RealBin/static";
 
-#plugin 'Minion::Admin', { route => app->routes->any('/minion_admin'), };
+plugin 'Minion::Admin', { route => app->routes->any('/minion_admin'), };
 
 get '/' => sub {
   my $self = shift;
@@ -28,7 +31,7 @@ get '/' => sub {
 
 post '/get_lofter' => sub {
   my $self = shift;
-  my %s = check_param( $self, [qw/w b m T update/], $BARE_PWD );
+  my %s = check_param( $self, [qw/w b T t update/], $cnf{"site.bare_pwd"} );
   return unless ( %s );
   if ( !$s{w} or !$s{b} ) {
     $self->render( text => 'arg error' );
@@ -43,13 +46,13 @@ post '/get_lofter' => sub {
 post '/get_novel' => sub {
   my $self = shift;
 
-  my @fields = qw/u T t
+  my @fields = qw/u T t 
     with_toc only_poster min_content_word_num grep_content filter_content
     min_page_num max_page_num
     min_item_num max_item_num
     update
     /;
-  my %opt = check_param( $self, \@fields, $BARE_PWD );
+  my %opt = check_param( $self, \@fields, $cnf{"site.bare_pwd"} );
   return unless ( %opt );
   if ( !$opt{u} ) {
     $self->render( text => 'arg error' );
@@ -61,6 +64,8 @@ post '/get_novel' => sub {
 }
 
 };
+
+app->start;
 
 ############start sub {
 
@@ -89,7 +94,6 @@ sub check_param {
 
 # }
 
-app->start;
 
 __DATA__
 
@@ -107,15 +111,14 @@ __DATA__
 <div class="form_title">下载</div>
 <form method="POST" action="/get_novel" target="_blank">
 网址/书名<input name="u" size="70" value="" />，密码<input name="pwd" value="" />
-目标格式&nbsp;&nbsp; <select name="T">
-<option value="azw3" selected="selected">azw3</option>
-<option value="mobi">mobi</option>
-<option value="html">html</option>
+目标格式&nbsp;&nbsp; <select name="t">
+<option value="epub" selected="selected">epub</option>
 <option value="txt">txt</option>
-<option value="epub">epub</option>
+<option value="html">html</option>
+<option value="mobi">mobi</option>
 </select>
 <br />
-推送邮箱<input name="t" size="70" value="" />
+推送邮箱<input name="T" size="70" value="" />
 , <input type="checkbox" name="only_poster">只看楼主，<input type="checkbox" name="with_toc" value="1" checked>生成目录
 <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;页码 <input name="min_page_num" size="3"/>-<input name="max_page_num" size="3"/>，章节/楼层 <input name="min_item_num" size="3"/>-<input name="max_item_num" size="3"/>，每楼最少<input name="min_content_word_num" size="3"/>字，<input type="checkbox" name="update">自动追文
@@ -134,15 +137,15 @@ __DATA__
 <div class="form_title">网易lofter</div>
 <form method="POST" action="/get_lofter" target="_blank">
 专栏ID<input name="w" size="20" value="" />.lofter.com, 密码<input name="pwd" value="" />
-目标格式&nbsp;&nbsp; <select name="T">
+目标格式&nbsp;&nbsp; <select name="t">
 <option value="txt" selected="selected">txt</option>
+<option value="epub">epub</option>
 <option value="mobi">mobi</option>
 <option value="html">html</option>
-<option value="epub">epub</option>
 </select>
 <br />
 <p>关键词<input name="b" size="30" value="" />，<input type="checkbox" name="update">自动追文</p>
-<p>目标邮箱<input name="m" size="30" value="" /></p>
+<p>目标邮箱<input name="T" size="30" value="" /></p>
 <p><input type="submit" value="推送" /></p>
 </form>
 </div>

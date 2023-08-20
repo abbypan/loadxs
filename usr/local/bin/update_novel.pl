@@ -3,16 +3,16 @@ use strict;
 use warnings;
 use utf8;
 
-#use SimpleDBI;
 use DBI;
 use Encode;
 use Encode::Locale;
 use Capture::Tiny ':all';
 use FindBin;
 use Config::Simple;
+use Env;
 
 my %cnf;
-Config::Simple->import_from("$FindBin::RealBin/novel.ini", \%cnf);
+Config::Simple->import_from("$HOME/.novel/config.ini", \%cnf);
 $cnf{$_} = decode(locale => $cnf{$_}) for keys(%cnf);
 
 ## config {{
@@ -36,21 +36,29 @@ while (my $r = $sth->fetchrow_hashref()) {
     $id++;
 
 
-  my $cmd;
+  my $cmd=$cnf{"bin.run_novel"};
   if ( $r->{url} ) {
-    $cmd = qq[$cnf{"bin.run_novel"} -u "$r->{url}" -t "$r->{mail}" -T $r->{type} -G "-v 0 -i $id-" $cnf{"cmd.mail"}];
-    if($r->{book}){
-        $cmd.=" -b '$r->{book}（追文）' ";
-    }
+    $cmd .= qq[ -u "$r->{url}"];
+    $cmd.=" -b '$r->{book}（追文）' " if($r->{book});
   } else {
-    $cmd = qq[$cnf{"bin.run_novel"} -s "$r->{site}" -w "$r->{writer}" -b "$r->{book}" -T $r->{type} -t "$r->{mail}" -G "-v 0 -i $id-" $cnf{"cmd.mail"}];
+    $cmd .= qq[ -s "$r->{site}" -w "$r->{writer}" -b "$r->{book}"];
+  }
+
+  $cmd.= qq[ -t $r->{type} -v 0 -i $id- ];
+
+  if($r->{mail}){
+      $cmd .= qq[-T "$r->{mail}"  $cnf{"cmd.gmail"}];
+  }else{
+      $cmd .= qq[-o '$cnf{"site.web_path"}'];
   }
 
   print encode(locale => $cmd), "\n";
+
   my ($stdout, $stderr, $exit) = capture {
       #    system( $cmd, @args );
       system($cmd);
   };
+
   my $c = "$stdout\n$stderr\n$exit\n";
   print "system cmd out:\n$c\n";
   my ( $last_id ) = $c =~ m#last_item_num:\s+(\d+)\n#s;
