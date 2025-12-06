@@ -17,7 +17,9 @@ xs 目录为web页面代码，使用perl的mojo开发，负责在线写入任务
 
 crontab 负责执行小说更新任务
 
-/etc/apache2/sites-enabled 目录下的conf文件为apache2配置，假设使用letsencrypt的证书，域名为xs.myebookserver.com, 本地目录为/var/www/xs
+/etc/apache2/sites-available 目录下的conf文件为apache2配置，假设使用letsencrypt的证书，域名为xs.myebookserver.com, 本地目录为/var/www/xs
+
+a2ensite xs
 
 
 假设:
