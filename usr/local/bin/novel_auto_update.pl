@@ -12,7 +12,7 @@ use Config::Simple;
 use Env;
 
 my %cnf;
-Config::Simple->import_from("$HOME/.novel/config.ini", \%cnf);
+Config::Simple->import_from("/etc/novel/config.ini", \%cnf);
 $cnf{$_} = decode(locale => $cnf{$_}) for keys(%cnf);
 
 ## config {{
@@ -36,7 +36,7 @@ while (my $r = $sth->fetchrow_hashref()) {
     $id++;
 
 
-  my $cmd=$cnf{"bin.run_novel"};
+  my $cmd=$cnf{"bin.get_novel"};
   if ( $r->{url} ) {
     $cmd .= qq[ -u "$r->{url}"];
     $cmd.=" -b '$r->{book}（追文）' " if($r->{book});
@@ -47,7 +47,7 @@ while (my $r = $sth->fetchrow_hashref()) {
   $cmd.= qq[ -t $r->{type} -v 0 -i $id- ];
 
   if($r->{mail}){
-      $cmd .= qq[-T "$r->{mail}"  $cnf{"cmd.gmail"}];
+      $cmd .= qq[-T "$r->{mail}"  $cnf{"mail.args"}];
   }else{
       $cmd .= qq[-o '$cnf{"site.web_path"}'];
   }

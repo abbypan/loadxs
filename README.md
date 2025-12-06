@@ -13,11 +13,11 @@
 
 xs 目录为web页面代码，使用perl的mojo开发，负责在线写入任务到数据库
 
-/usr/local/bin/minion_worker.pl 负责执行小说下载任务，使用perl的Minion模块
+/usr/local/bin/novel_minion_worker.pl 负责执行小说下载任务，使用perl的Minion模块
 
 crontab 负责执行小说更新任务
 
-/etc/apache2/sites-enabled 目录下的conf文件为loadxs页面的apache2配置，假设使用letsencrypt的证书，域名为loadxs.myebookserver.com, 本地目录为/var/www/xs
+/etc/apache2/sites-enabled 目录下的conf文件为apache2配置，假设使用letsencrypt的证书，域名为xs.myebookserver.com, 本地目录为/var/www/xs
 
 
 假设:
@@ -76,11 +76,11 @@ crontab 负责执行小说更新任务
     +----------+--------------+------+-----+-------------------+-----------------------------+
     8 rows in set (0.00 sec)
 
-#  /etc/systemd/system/minion_worker.service 负责定期执行minion_worker.pl，避免程序失效
+#  /etc/systemd/system/novel.service 负责定期执行novel_minion_worker.pl，避免程序失效
 
-    # systemctl enable minion_worker.service 
-    # systemctl start minion_worker.service
+    # systemctl enable novel.service 
+    # systemctl start novel.service
 
 #  crontab
 
-    0 */6 * * * /usr/bin/perl /usr/local/bin/update_novel.pl >/tmp/update_novel.log 2>&1
+    0 */6 * * * /usr/bin/perl /usr/local/bin/novel_auto_update.pl >/tmp/novel_auto_update.log 2>&1

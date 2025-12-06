@@ -14,7 +14,7 @@ use Env;
 use Config::Simple;
 
 my %cnf;
-Config::Simple->import_from("$HOME/.novel/config.ini", \%cnf);
+Config::Simple->import_from("/etc/novel/config.ini", \%cnf);
 $cnf{$_} = decode(locale => $cnf{$_}) for keys(%cnf);
 
 plugin Minion => {mysql => qq[mysql://$cnf{"db.usr"}:$cnf{"db.pwd"}\@$cnf{"db.host"}/minion]};

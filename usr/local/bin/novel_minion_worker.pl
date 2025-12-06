@@ -19,7 +19,7 @@ $ENV{MOJO_PUBSUB_EXPERIMENTAL} =1;
 
 
 my %cnf;
-Config::Simple->import_from("$HOME/.novel/config.ini", \%cnf);
+Config::Simple->import_from("/etc/novel/config.ini", \%cnf);
 $cnf{$_} = decode(locale => $cnf{$_}) for keys(%cnf);
 
 our $minion = Minion->new(mysql => qq[mysql://$cnf{"db.usr"}:$cnf{"db.pwd"}\@$cnf{"db.host"}/minion]);
@@ -42,7 +42,8 @@ my $r = decode_json( $task );
 
   print "$r->{w}, $r->{b}\n";
   my ( $c, $stderr ) = capture {
-    system( qq[$cnf{"bin.run_novel"} -s lofter -w "$r->{w}" -b "$r->{b}" -t $r->{t} -T "$r->{T}" $cnf{"cmd.gmail"}] );
+	  #system( qq[$cnf{"bin.get_novel"} -s lofter -w "$r->{w}" -b "$r->{b}" -t $r->{t} -T "$r->{T}" -M $cnf{"mail.smtp"} -p $cnf{"mail.port"} -U $cnf{"mail.usr"} -P $cnf{"mail.pwd"} -F $cnf{"mail.from"}] );
+    system( qq[$cnf{"bin.get_novel"} -s lofter -w "$r->{w}" -b "$r->{b}" -t $r->{t} -T "$r->{T}" $cnf{"mail.args"}] );
   };
   if (exists $r->{update} and $r->{update} eq 'on' ) {
     my ( $last_id ) = $c =~ m#last_item_num: (\d+)\n#s;
@@ -62,13 +63,10 @@ $task = encode( "utf8", $task );
 my $r = decode_json( $task );
 
 if($r->{u}!~/^http/){
-    my $u = `$FindBin::RealBin/get_customsearch_novel.pl '$r->{u}'`;
-    chomp($u);
-    print "get_customsearch_novel: $u\n";
-    $r->{u}=$u;
+	exit;
 }
 
-  my $cmd = qq[$cnf{"bin.run_novel"} ];
+  my $cmd = qq[$cnf{"bin.get_novel"} ];
   $cmd .= join( " ", map { qq[ -$_ "$r->{$_}"] } grep { $r->{$_} } qw/u T t/ );
 
   $r->{$_} //='' for qw/min_item_num max_item_num min_page_num max_page_num/;
@@ -77,8 +75,9 @@ if($r->{u}!~/^http/){
   $cmd .= join(" ", map { qq[ -$_ "$r->{$_}" ] } grep { $r->{$_} } qw/i p/); 
   $cmd .= join(" ", map { qq[ --$_ "$r->{$_}" ] } grep { $r->{$_} } qw/with_toc only_poster min_content_word_num grep_content filter_content/); 
 
-  if ( $r->{t} ) {
-    $cmd .= qq[ $cnf{"cmd.gmail"} ];
+  if ( $r->{T} ) {
+	  #$cmd .= qq[ -M $cnf{"mail.smtp"} -p $cnf{"mail.port"} -U $cnf{"mail.usr"} -P $cnf{"mail.pwd"} -F $cnf{"mail.from"} ];
+    $cmd .= qq[ $cnf{"mail.args"} ];
   } else {
     system(qq[mkdir -p '$cnf{"site.web_path"}']);
     $cmd .= qq[ -o $cnf{"site.web_path"} ];
@@ -90,7 +89,7 @@ if($r->{u}!~/^http/){
   #system(qq[/usr/bin/rsync -vazu --delete  -L $WEB_PATH/ root\@$WEB_S:$WEB_PATH] );
 
   if ( exists $r->{update} and $r->{update} eq 'on' ) {
-    my $c = `/usr/local/bin/get_novel.pl -u "$r->{u}" -D 1`;
+    my $c = `$cnf{"bin.get_novel"} -u "$r->{u}" -D 1`;
     chomp( $c );
     my @d = split /,/, $c;
     my ( $n ) = $d[-1];

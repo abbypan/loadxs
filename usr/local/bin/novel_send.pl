@@ -10,7 +10,7 @@ use Config::Simple;
 use Env;
 
 my %cnf;
-Config::Simple->import_from("$HOME/.novel/config.ini", \%cnf);
+Config::Simple->import_from("/etc/novel/config.ini", \%cnf);
 $cnf{$_} = decode(locale => $cnf{$_}) for keys(%cnf);
 
 my ($url, $mail, @args) = @ARGV;
@@ -23,14 +23,8 @@ if(-f $url){
     #system(qq[ansible $h -m shell -a '$cmd']);
     #system(qq[ansible $h -m shell -a 'rm $url']);
     
-    my $cmd = qq[$cnf{"bin.send_email"} -m "$msg" -f "$url" -T "$mail"  $cnf{"cmd.gmail"} ];
+    my $cmd = qq[$cnf{"bin.send_email"} -m "$msg" -f "$url" -T "$mail"  $cnf{"mail.args"} ];
     system($cmd);
 }else{
-    if($url!~/http/){
-    print $cnf{"bin.customsearch_novel"} , " $url\n";
-        $url=`$cnf{"bin.customsearch_novel"} $url`;
-    print $url, "\n";
-        chomp($url);
-    }
-    system(qq[$cnf{"bin.run_novel"} -u "$url" -t $cnf{"ebook.type"} -T "$mail" $args[0] $cnf{"cmd.gmail"}]) if($url=~/http/);
+    system(qq[$cnf{"bin.get_novel"} -u "$url" -t $cnf{"ebook.type"} -T "$mail" $args[0] $cnf{"mail.args"}]) if($url=~/http/);
 }

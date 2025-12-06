@@ -1,8 +1,8 @@
 [Unit]
-Description=Minion Worker
+Description=Novel
 
 [Service]
-ExecStart=/usr/local/bin/minion_worker.pl
+ExecStart=/usr/local/bin/novel_minion_worker.pl
 Restart=always
 
 [Install]
