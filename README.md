@@ -20,7 +20,6 @@ crontab 负责执行小说更新任务
 /etc/apache2/sites-enabled 目录下的conf文件为apache2配置，假设使用letsencrypt的证书，域名为xs.myebookserver.com, 本地目录为/var/www/xs
 
 
-
 假设:
 
 1) 推送的exim4邮件服务器为 mail.myebookserver.com，推送源邮箱为 kindle@myebookserver.com
@@ -45,42 +44,24 @@ crontab 负责执行小说更新任务
 
 # minion 数据库存放即时指定下载的任务
 
-    MariaDB [minion]> show tables;
-    +-----------------------+
-    | Tables_in_minion      |
-    +-----------------------+
-    | minion_jobs           |
-    | minion_jobs_depends   |
-    | minion_locks          |
-    | minion_workers        |
-    | minion_workers_inbox  |
-    | mojo_migrations       |
-    | mojo_pubsub_notify    |
-    | mojo_pubsub_subscribe |
-    +-----------------------+
-    8 rows in set (0.000 sec)
+    create database minion;
+
 
 # novel数据库的update_novel表存放每天自动追文的任务
 
-    MariaDB [novel]> desc update_novel;
-    +----------+--------------+------+-----+-------------------+-----------------------------+
-    | Field    | Type         | Null | Key | Default           | Extra                       |
-    +----------+--------------+------+-----+-------------------+-----------------------------+
-    | url      | varchar(100) | YES  |     | NULL              |                             |
-    | mail     | varchar(100) | YES  |     | NULL              |                             |
-    | novel_id | smallint     | YES  |     | NULL              |                             |
-    | note     | varchar(50)  | NO   | PRI |                   |                             |
-    | time     | timestamp    | NO   |     | CURRENT_TIMESTAMP | on update CURRENT_TIMESTAMP |
-    | writer   | varchar(50)  | YES  |     | NULL              |                             |
-    | book     | varchar(50)  | YES  |     | NULL              |                             |
-    | site     | varchar(50)  | YES  |     | NULL              |                             |
-    +----------+--------------+------+-----+-------------------+-----------------------------+
-    8 rows in set (0.00 sec)
+    create database novel;
+
+    update_novel结构见 db/novel_struct.sql
+
 
 #  /etc/systemd/system/novel.service 负责定期执行novel_minion_worker.pl，避免程序失效
 
     # systemctl enable novel.service 
     # systemctl start novel.service
+
+# minion
+
+    nohup novel_minion_worker.pl &
 
 #  crontab
 
