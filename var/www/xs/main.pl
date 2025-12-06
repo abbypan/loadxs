@@ -51,6 +51,7 @@ post '/get_novel' => sub {
     min_page_num max_page_num
     min_item_num max_item_num
     update
+    back_index
     /;
   my %opt = check_param( $self, \@fields, $cnf{"site.bare_pwd"} );
   return unless ( %opt );
@@ -121,7 +122,9 @@ __DATA__
 推送邮箱<input name="T" size="70" value="" />
 , <input type="checkbox" name="only_poster">只看楼主，<input type="checkbox" name="with_toc" value="1" checked>生成目录
 <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;页码 <input name="min_page_num" size="3"/>-<input name="max_page_num" size="3"/>，章节/楼层 <input name="min_item_num" size="3"/>-<input name="max_item_num" size="3"/>，每楼最少<input name="min_content_word_num" size="3"/>字，<input type="checkbox" name="update">自动追文
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;页码 <input name="min_page_num" size="3"/>-<input name="max_page_num" size="3"/>，章节/楼层 <input name="min_item_num" size="3"/>-<input name="max_item_num" size="3"/>，
+不取倒数 <input name="back_index" size="3"/> 章节，
+每楼最少<input name="min_content_word_num" size="3"/>字，<input type="checkbox" name="update">自动追文
 <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;提取<input name="grep_content" size="30" value="" />，过滤<input name="filter_content" size="30" value="" />
 <br>

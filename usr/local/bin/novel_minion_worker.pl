@@ -73,7 +73,7 @@ if($r->{u}!~/^http/){
   $r->{i} = ( $r->{min_item_num} or $r->{max_item_num} ) ? "$r->{min_item_num}-$r->{max_item_num}" : '';
   $r->{j} = ( $r->{min_page_num} or $r->{max_page_num} ) ? "$r->{min_page_num}-$r->{max_page_num}" : '';
   $cmd .= join(" ", map { qq[ -$_ "$r->{$_}" ] } grep { $r->{$_} } qw/i p/); 
-  $cmd .= join(" ", map { qq[ --$_ "$r->{$_}" ] } grep { $r->{$_} } qw/with_toc only_poster min_content_word_num grep_content filter_content/); 
+  $cmd .= join(" ", map { qq[ --$_ "$r->{$_}" ] } grep { $r->{$_} } qw/with_toc only_poster min_content_word_num grep_content filter_content back_index/); 
 
   if ( $r->{T} ) {
 	  #$cmd .= qq[ -M $cnf{"mail.smtp"} -p $cnf{"mail.port"} -U $cnf{"mail.usr"} -P $cnf{"mail.pwd"} -F $cnf{"mail.from"} ];
@@ -96,8 +96,8 @@ if($r->{u}!~/^http/){
     $n ||= 0;
     my $note = md5_hex( encode( 'utf8', qq[$r->{u}-$r->{t}] ) );
 
-    my $sql = qq[insert into novel.update_novel(url,last_item_num,mail,note,writer,book,type, task) values(?, ?, ?, ?, ?,?, ?, ?)];
+    my $sql = qq[insert into novel.update_novel(url,last_item_num,mail,note,writer,book,type, task, back_item_num) values(?, ?, ?, ?, ?,?, ?, ?, ?)];
     print $sql,"\n";
-    $minion->backend->mysql->db->query($sql, $r->{u}, $n, $r->{t},$note,$d[0],$d[1],$r->{T},$task);
+    $minion->backend->mysql->db->query($sql, $r->{u}, $n, $r->{t},$note,$d[0],$d[1],$r->{T},$task, $r->{back_index});
   }
 } ## end sub get_novel_cmd
